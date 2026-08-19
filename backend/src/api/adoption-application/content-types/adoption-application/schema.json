@@ -1,0 +1,45 @@
+{
+  "kind": "collectionType",
+  "collectionName": "adoption_applications",
+  "info": {
+    "singularName": "adoption-application",
+    "pluralName": "adoption-applications",
+    "displayName": "Adoption Application"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "referenceCode": { "type": "string", "required": true, "unique": true, "maxLength": 32 },
+    "animal": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::animal.animal",
+      "inversedBy": "applications"
+    },
+    "fullName": { "type": "string", "required": true, "maxLength": 120 },
+    "phone": { "type": "string", "required": true, "maxLength": 24 },
+    "email": { "type": "email", "required": true, "maxLength": 160 },
+    "city": { "type": "string", "required": true, "maxLength": 80 },
+    "district": { "type": "string", "required": true, "maxLength": 80 },
+    "housingType": {
+      "type": "enumeration",
+      "enum": ["apartment", "house", "other"],
+      "required": true
+    },
+    "hasGarden": { "type": "boolean", "required": true },
+    "hasOtherPets": { "type": "boolean", "required": true },
+    "otherPetsDescription": { "type": "text", "maxLength": 500 },
+    "previousPetExperience": { "type": "text", "maxLength": 700 },
+    "reasonForAdoption": { "type": "text", "required": true, "maxLength": 1000 },
+    "consentAccepted": { "type": "boolean", "required": true },
+    "applicationStatus": {
+      "type": "enumeration",
+      "columnName": "status",
+      "enum": ["new", "reviewing", "contacted", "approved", "rejected", "cancelled"],
+      "required": true,
+      "default": "new"
+    },
+    "internalNotes": { "type": "text", "private": true }
+  }
+}

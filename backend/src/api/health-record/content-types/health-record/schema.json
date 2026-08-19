@@ -1,0 +1,29 @@
+{
+  "kind": "collectionType",
+  "collectionName": "health_records",
+  "info": {
+    "singularName": "health-record",
+    "pluralName": "health-records",
+    "displayName": "Health Record"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "animal": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::animal.animal",
+      "inversedBy": "healthRecords"
+    },
+    "recordDate": { "type": "date", "required": true },
+    "recordType": {
+      "type": "enumeration",
+      "enum": ["examination", "vaccination", "treatment", "surgery", "other"],
+      "required": true
+    },
+    "description": { "type": "text", "required": true },
+    "veterinarian": { "type": "string", "maxLength": 100 },
+    "internalNotes": { "type": "text", "private": true }
+  }
+}

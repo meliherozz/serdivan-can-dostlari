@@ -1,0 +1,65 @@
+{
+  "kind": "collectionType",
+  "collectionName": "animals",
+  "info": {
+    "singularName": "animal",
+    "pluralName": "animals",
+    "displayName": "Animal"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "name": { "type": "string", "required": true, "maxLength": 80 },
+    "slug": { "type": "uid", "targetField": "name", "required": true },
+    "species": { "type": "enumeration", "enum": ["dog", "cat", "other"], "required": true },
+    "gender": { "type": "enumeration", "enum": ["male", "female", "unknown"], "required": true },
+    "ageGroup": { "type": "enumeration", "enum": ["baby", "young", "adult", "senior"], "required": true },
+    "size": { "type": "enumeration", "enum": ["small", "medium", "large"], "required": true },
+    "estimatedBirthDate": { "type": "date" },
+    "shortDescription": { "type": "text", "maxLength": 240 },
+    "description": { "type": "richtext" },
+    "personality": { "type": "text", "maxLength": 500 },
+    "vaccinated": { "type": "boolean", "default": false },
+    "neutered": { "type": "boolean", "default": false },
+    "microchipped": { "type": "boolean", "default": false },
+    "adoptionStatus": {
+      "type": "enumeration",
+      "enum": ["available", "reserved", "adopted", "unavailable"],
+      "required": true,
+      "default": "available"
+    },
+    "featured": { "type": "boolean", "default": false },
+    "arrivalDate": { "type": "date", "required": true },
+    "featuredImage": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "images": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "breed": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::breed.breed",
+      "inversedBy": "animals"
+    },
+    "healthRecords": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::health-record.health-record",
+      "mappedBy": "animal"
+    },
+    "applications": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::adoption-application.adoption-application",
+      "mappedBy": "animal"
+    }
+  }
+}

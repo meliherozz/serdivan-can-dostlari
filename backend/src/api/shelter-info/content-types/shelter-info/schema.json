@@ -1,0 +1,34 @@
+{
+  "kind": "singleType",
+  "collectionName": "shelter_infos",
+  "info": {
+    "singularName": "shelter-info",
+    "pluralName": "shelter-infos",
+    "displayName": "Shelter Info"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "name": { "type": "string", "required": true, "maxLength": 140 },
+    "description": { "type": "text" },
+    "address": { "type": "text" },
+    "phone": { "type": "string", "maxLength": 40 },
+    "email": { "type": "email" },
+    "workingHours": { "type": "text" },
+    "latitude": { "type": "decimal" },
+    "longitude": { "type": "decimal" },
+    "heroImage": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "gallery": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["images"]
+    }
+  }
+}

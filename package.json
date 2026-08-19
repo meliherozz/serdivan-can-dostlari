@@ -1,0 +1,17 @@
+{
+  "name": "serdivan-can-dostlari",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm --prefix backend run develop\" \"npm --prefix frontend run dev\"",
+    "dev:backend": "npm --prefix backend run develop",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build",
+    "lint": "npm --prefix frontend run lint",
+    "typecheck": "npm --prefix frontend run typecheck",
+    "seed": "npm --prefix backend run develop:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
