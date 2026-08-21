@@ -1,11 +1,18 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { AnimalImage } from '@/components/AnimalImage';
+import { AnimalGallery } from '@/components/AnimalGallery';
+import { StatusBadge } from '@/components/StatusBadge';
 import { getAnimalBySlug } from '@/lib/strapi/client';
 import { ageLabels, genderLabels, sizeLabels, speciesLabels, statusLabels } from '@/utils/labels';
 
 type AnimalDetailPageProps = {
   params: Promise<{ slug: string }>;
+};
+
+const ctaText = {
+  reserved: 'Bu can dostu şu anda rezerve',
+  adopted: 'Bu can dostumuz yuvasına kavuştu',
+  unavailable: 'Şu anda yeni başvuru alınamıyor',
 };
 
 export default async function AnimalDetailPage({ params }: AnimalDetailPageProps) {
@@ -19,56 +26,79 @@ export default async function AnimalDetailPage({ params }: AnimalDetailPageProps
     ['Cins', animal.breed?.name ?? 'Belirtilmemiş'],
     ['Cinsiyet', genderLabels[animal.gender]],
     ['Yaş', ageLabels[animal.ageGroup]],
-    ['Boyut', sizeLabels[animal.size]],
-    ['Durum', statusLabels[animal.adoptionStatus]],
+    ['Boyut', `${sizeLabels[animal.size]} Boy`],
+  ];
+
+  const healthItems = [
+    ['Aşı', animal.vaccinated ? 'Aşıları yapıldı' : 'Aşı bilgisi bulunmuyor'],
+    ['Kısırlaştırma', animal.neutered ? 'Kısırlaştırıldı' : 'Kısırlaştırma bilgisi bulunmuyor'],
+    ['Mikroçip', animal.microchipped ? 'Mikroçipli' : 'Mikroçip bilgisi bulunmuyor'],
   ];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="overflow-hidden rounded-lg border border-stone-200 bg-white">
-          <AnimalImage animal={animal} large />
-        </div>
-        <section>
-          <p className="text-sm font-semibold text-emerald-800">{statusLabels[animal.adoptionStatus]}</p>
-          <h1 className="mt-2 text-4xl font-bold">{animal.name}</h1>
-          <p className="mt-4 text-lg leading-8 text-stone-600">{animal.shortDescription}</p>
-          <dl className="mt-6 grid grid-cols-2 gap-3">
-            {facts.map(([label, value]) => (
-              <div key={label} className="rounded-md border border-stone-200 bg-white p-3">
-                <dt className="text-xs font-semibold uppercase tracking-normal text-stone-500">{label}</dt>
-                <dd className="mt-1 font-medium">{value}</dd>
-              </div>
-            ))}
-          </dl>
-          {animal.adoptionStatus === 'available' ? (
-            <Link href={`/sahiplen/${animal.slug}`} className="mt-6 inline-flex w-full justify-center rounded-md bg-emerald-700 px-5 py-3 font-semibold text-white hover:bg-emerald-800 sm:w-auto">
-              Sahiplenmek İstiyorum
-            </Link>
-          ) : (
-            <p className="mt-6 rounded-md bg-stone-100 px-4 py-3 text-sm font-medium text-stone-700">
-              Bu hayvan için şu anda yeni başvuru alınamıyor.
-            </p>
-          )}
-        </section>
-      </div>
+    <div>
+      <section className="border-b border-[var(--color-border)] bg-[var(--color-surface-soft)]">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:py-14">
+          <AnimalGallery animal={animal} />
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-3">
-        <section className="lg:col-span-2">
-          <h2 className="text-2xl font-bold">Hakkında</h2>
-          <p className="mt-3 whitespace-pre-line leading-8 text-stone-700">{animal.description}</p>
-          <h2 className="mt-8 text-2xl font-bold">Karakter</h2>
-          <p className="mt-3 leading-8 text-stone-700">{animal.personality}</p>
-        </section>
-        <aside className="rounded-lg border border-stone-200 bg-white p-5">
-          <h2 className="text-xl font-bold">Sağlık Durumu</h2>
-          <ul className="mt-4 space-y-3 text-sm text-stone-700">
-            <li>Aşı: {animal.vaccinated ? 'Tamamlandı' : 'Bilgi bekleniyor'}</li>
-            <li>Kısırlaştırma: {animal.neutered ? 'Tamamlandı' : 'Tamamlanmadı'}</li>
-            <li>Mikroçip: {animal.microchipped ? 'Var' : 'Yok / bilgi bekleniyor'}</li>
+          <div>
+            <StatusBadge status={animal.adoptionStatus} />
+            <h1 className="mt-4 text-5xl font-black leading-tight text-[var(--color-text)] md:text-6xl">{animal.name}</h1>
+            <p className="mt-5 text-lg leading-8 text-[var(--color-muted)]">
+              {animal.shortDescription || 'Bu can dostumuz hakkında temel bilgileri aşağıda inceleyebilirsiniz.'}
+            </p>
+
+            <dl className="mt-7 grid grid-cols-2 gap-3">
+              {facts.map(([label, value]) => (
+                <div key={label} className="rounded-lg border border-[var(--color-border)] bg-white/85 p-4">
+                  <dt className="text-xs font-bold uppercase text-[var(--color-muted)]">{label}</dt>
+                  <dd className="mt-1 font-black text-[var(--color-text)]">{value}</dd>
+                </div>
+              ))}
+            </dl>
+
+            {animal.adoptionStatus === 'available' ? (
+              <Link href={`/sahiplen/${animal.slug}`} className="btn-primary focus-ring mt-7 w-full px-5 py-3 sm:w-auto">
+                Sahiplenmek İstiyorum <span className="arrow-shift" aria-hidden="true">→</span>
+              </Link>
+            ) : (
+              <p className="mt-7 rounded-lg border border-[var(--color-border)] bg-white px-5 py-4 text-sm font-bold text-[var(--color-text)]">
+                {ctaText[animal.adoptionStatus as keyof typeof ctaText] ?? statusLabels[animal.adoptionStatus]}
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto grid max-w-6xl gap-8 px-4 py-12 lg:grid-cols-[1fr_340px]">
+        <div>
+          <article className="rounded-lg border border-[var(--color-border)] bg-white p-6">
+            <p className="text-sm font-bold uppercase text-[var(--color-primary)]">{animal.name}&apos;ın Hikâyesi</p>
+            <p className="mt-4 whitespace-pre-line text-lg leading-8 text-[var(--color-muted)]">
+              {animal.description || 'Detaylı açıklama bulunmuyor.'}
+            </p>
+          </article>
+
+          <article className="mt-6 rounded-lg border border-[var(--color-border)] bg-[var(--color-primary-soft)] p-6">
+            <p className="text-sm font-bold uppercase text-[var(--color-primary)]">Karakteri</p>
+            <p className="mt-4 whitespace-pre-line text-lg leading-8 text-[var(--color-muted)]">
+              {animal.personality || 'Karakter bilgisi bulunmuyor.'}
+            </p>
+          </article>
+        </div>
+
+        <aside className="rounded-lg border border-[var(--color-border)] bg-white p-6 lg:sticky lg:top-24 lg:self-start">
+          <h2 className="text-2xl font-black text-[var(--color-text)]">Sağlık Bilgileri</h2>
+          <ul className="mt-5 space-y-3 text-sm text-[var(--color-muted)]">
+            {healthItems.map(([label, value]) => (
+              <li key={label} className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
+                <span className="block text-xs font-bold uppercase text-[var(--color-muted)]">{label}</span>
+                <span className="mt-1 block font-bold text-[var(--color-text)]">{value}</span>
+              </li>
+            ))}
           </ul>
         </aside>
-      </div>
+      </section>
     </div>
   );
 }

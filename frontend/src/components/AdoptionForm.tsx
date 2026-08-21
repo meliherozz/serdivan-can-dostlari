@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { submitAdoptionApplication } from '@/lib/strapi/client';
-import type { Animal, AdoptionApplicationInput, HousingType } from '@/types/domain';
+import type { AdoptionApplicationInput, Animal, HousingType } from '@/types/domain';
 import { housingLabels } from '@/utils/labels';
 
 type Props = {
@@ -26,6 +26,11 @@ const initialState: AdoptionApplicationInput = {
   consentAccepted: false,
   website: '',
 };
+
+const inputClass =
+  'mt-2 w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-2.5 text-[var(--color-text)] transition hover:border-[var(--color-primary)]/35 focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-900/15';
+const sectionClass = 'interactive-card rounded-lg border border-[var(--color-border)] bg-white p-5';
+const labelClass = 'text-sm font-bold text-[var(--color-text)]';
 
 export function AdoptionForm({ animal }: Props) {
   const router = useRouter();
@@ -59,9 +64,9 @@ export function AdoptionForm({ animal }: Props) {
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-5 rounded-lg border border-stone-200 bg-white p-5 shadow-sm">
+    <form onSubmit={onSubmit} className="space-y-5">
       {error ? (
-        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800" role="alert">
+        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-800" role="alert">
           {error}
         </div>
       ) : null}
@@ -76,75 +81,109 @@ export function AdoptionForm({ animal }: Props) {
         autoComplete="off"
       />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="text-sm font-medium text-stone-800">
-          Ad soyad
-          <input required minLength={3} maxLength={120} value={form.fullName} onChange={(event) => setValue('fullName', event.target.value)} className="mt-2 w-full rounded-md border border-stone-300 px-3 py-2" />
-        </label>
-        <label className="text-sm font-medium text-stone-800">
-          Telefon
-          <input required maxLength={24} value={form.phone} onChange={(event) => setValue('phone', event.target.value)} className="mt-2 w-full rounded-md border border-stone-300 px-3 py-2" />
-        </label>
-        <label className="text-sm font-medium text-stone-800">
-          E-posta
-          <input required type="email" maxLength={160} value={form.email} onChange={(event) => setValue('email', event.target.value)} className="mt-2 w-full rounded-md border border-stone-300 px-3 py-2" />
-        </label>
-        <label className="text-sm font-medium text-stone-800">
-          İl
-          <input required maxLength={80} value={form.city} onChange={(event) => setValue('city', event.target.value)} className="mt-2 w-full rounded-md border border-stone-300 px-3 py-2" />
-        </label>
-        <label className="text-sm font-medium text-stone-800">
-          İlçe
-          <input required maxLength={80} value={form.district} onChange={(event) => setValue('district', event.target.value)} className="mt-2 w-full rounded-md border border-stone-300 px-3 py-2" />
-        </label>
-        <label className="text-sm font-medium text-stone-800">
-          Konut tipi
-          <select value={form.housingType} onChange={(event) => setValue('housingType', event.target.value as HousingType)} className="mt-2 w-full rounded-md border border-stone-300 px-3 py-2">
-            {Object.entries(housingLabels).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
-        </label>
-      </div>
+      <section className={sectionClass} aria-labelledby="contact-heading">
+        <h2 id="contact-heading" className="text-xl font-black text-[var(--color-text)]">
+          İletişim Bilgileri
+        </h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label className={labelClass}>
+            Ad soyad
+            <input required minLength={3} maxLength={120} value={form.fullName} onChange={(event) => setValue('fullName', event.target.value)} className={inputClass} />
+          </label>
+          <label className={labelClass}>
+            Telefon
+            <input required maxLength={24} value={form.phone} onChange={(event) => setValue('phone', event.target.value)} className={inputClass} />
+          </label>
+          <label className={labelClass}>
+            E-posta
+            <input required type="email" maxLength={160} value={form.email} onChange={(event) => setValue('email', event.target.value)} className={inputClass} />
+          </label>
+          <label className={labelClass}>
+            İl
+            <input required maxLength={80} value={form.city} onChange={(event) => setValue('city', event.target.value)} className={inputClass} />
+          </label>
+          <label className={`${labelClass} sm:col-span-2`}>
+            İlçe
+            <input required maxLength={80} value={form.district} onChange={(event) => setValue('district', event.target.value)} className={inputClass} />
+          </label>
+        </div>
+      </section>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="flex items-center gap-3 rounded-md border border-stone-200 p-3 text-sm font-medium text-stone-800">
-          <input type="checkbox" checked={form.hasGarden} onChange={(event) => setValue('hasGarden', event.target.checked)} />
-          Bahçem var
+      <section className={sectionClass} aria-labelledby="home-heading">
+        <h2 id="home-heading" className="text-xl font-black text-[var(--color-text)]">
+          Yaşam Alanı
+        </h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label className={labelClass}>
+            Konut tipi
+            <select value={form.housingType} onChange={(event) => setValue('housingType', event.target.value as HousingType)} className={inputClass}>
+              {Object.entries(housingLabels).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="grid gap-3">
+            <label className="flex items-center gap-3 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm font-bold text-[var(--color-text)] transition hover:border-[var(--color-primary)]/35">
+              <input type="checkbox" checked={form.hasGarden} onChange={(event) => setValue('hasGarden', event.target.checked)} className="h-4 w-4 accent-[var(--color-primary)]" />
+              Bahçem var
+            </label>
+            <label className="flex items-center gap-3 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm font-bold text-[var(--color-text)] transition hover:border-[var(--color-primary)]/35">
+              <input type="checkbox" checked={form.hasOtherPets} onChange={(event) => setValue('hasOtherPets', event.target.checked)} className="h-4 w-4 accent-[var(--color-primary)]" />
+              Başka evcil hayvanım var
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section className={sectionClass} aria-labelledby="experience-heading">
+        <h2 id="experience-heading" className="text-xl font-black text-[var(--color-text)]">
+          Hayvan Deneyimi
+        </h2>
+        <div className="mt-4 grid gap-4">
+          <label className={`block ${labelClass}`}>
+            Diğer evcil hayvanlar
+            <textarea maxLength={500} value={form.otherPetsDescription} onChange={(event) => setValue('otherPetsDescription', event.target.value)} className={`${inputClass} min-h-24`} />
+          </label>
+          <label className={`block ${labelClass}`}>
+            Önceki hayvan bakım deneyimi
+            <textarea maxLength={700} value={form.previousPetExperience} onChange={(event) => setValue('previousPetExperience', event.target.value)} className={`${inputClass} min-h-24`} />
+          </label>
+        </div>
+      </section>
+
+      <section className={sectionClass} aria-labelledby="reason-heading">
+        <h2 id="reason-heading" className="text-xl font-black text-[var(--color-text)]">
+          Sahiplendirme Nedeni
+        </h2>
+        <label className={`mt-4 block ${labelClass}`}>
+          {animal.name} için başvuru nedeniniz
+          <textarea required minLength={20} maxLength={1000} value={form.reasonForAdoption} onChange={(event) => setValue('reasonForAdoption', event.target.value)} className={`${inputClass} min-h-32`} />
         </label>
-        <label className="flex items-center gap-3 rounded-md border border-stone-200 p-3 text-sm font-medium text-stone-800">
-          <input type="checkbox" checked={form.hasOtherPets} onChange={(event) => setValue('hasOtherPets', event.target.checked)} />
-          Başka evcil hayvanım var
+      </section>
+
+      <section className={sectionClass} aria-labelledby="consent-heading">
+        <h2 id="consent-heading" className="text-xl font-black text-[var(--color-text)]">
+          Onay
+        </h2>
+        <div className="mt-4 rounded-md bg-[var(--color-surface)] p-4 text-sm leading-6 text-[var(--color-muted)]">
+          Kişisel verileriniz yalnızca sahiplendirme başvurunuzun değerlendirilmesi amacıyla işlenir.
+        </div>
+        <label className="mt-4 flex items-start gap-3 text-sm font-bold text-[var(--color-text)]">
+          <input
+            required
+            type="checkbox"
+            checked={form.consentAccepted}
+            onChange={(event) => setValue('consentAccepted', event.target.checked)}
+            className="mt-1 h-4 w-4 accent-[var(--color-primary)]"
+          />
+          Kişisel verilerimin bu başvurunun değerlendirilmesi amacıyla işlenmesine ilişkin bilgilendirmeyi okudum.
         </label>
-      </div>
+      </section>
 
-      <label className="block text-sm font-medium text-stone-800">
-        Diğer evcil hayvanlar
-        <textarea maxLength={500} value={form.otherPetsDescription} onChange={(event) => setValue('otherPetsDescription', event.target.value)} className="mt-2 min-h-24 w-full rounded-md border border-stone-300 px-3 py-2" />
-      </label>
-      <label className="block text-sm font-medium text-stone-800">
-        Önceki hayvan bakım deneyimi
-        <textarea maxLength={700} value={form.previousPetExperience} onChange={(event) => setValue('previousPetExperience', event.target.value)} className="mt-2 min-h-24 w-full rounded-md border border-stone-300 px-3 py-2" />
-      </label>
-      <label className="block text-sm font-medium text-stone-800">
-        Sahiplenme nedeni
-        <textarea required minLength={20} maxLength={1000} value={form.reasonForAdoption} onChange={(event) => setValue('reasonForAdoption', event.target.value)} className="mt-2 min-h-32 w-full rounded-md border border-stone-300 px-3 py-2" />
-      </label>
-
-      <div className="rounded-md bg-stone-50 p-4 text-sm text-stone-700">
-        KVKK/Aydınlatma metni belediye tarafından onaylandıktan sonra bu alana eklenecektir.
-      </div>
-      <label className="flex items-start gap-3 text-sm font-medium text-stone-800">
-        <input required type="checkbox" checked={form.consentAccepted} onChange={(event) => setValue('consentAccepted', event.target.checked)} className="mt-1" />
-        Kişisel verilerimin bu başvurunun değerlendirilmesi amacıyla işlenmesine ilişkin bilgilendirmeyi okudum.
-      </label>
-
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-full rounded-md bg-emerald-700 px-5 py-3 font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400"
-      >
-        {pending ? 'Gönderiliyor...' : 'Başvuruyu Gönder'}
+      <button type="submit" disabled={pending} className="btn-primary focus-ring w-full px-5 py-3 disabled:cursor-not-allowed disabled:bg-stone-400">
+        {pending ? 'Başvurunuz gönderiliyor...' : 'Başvurumu Gönder'}
       </button>
     </form>
   );

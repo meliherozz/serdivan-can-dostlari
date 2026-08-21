@@ -1,46 +1,48 @@
 import Link from 'next/link';
 import type { Animal } from '@/types/domain';
-import { ageLabels, genderLabels, speciesLabels, statusLabels } from '@/utils/labels';
+import { ageLabels, genderLabels, sizeLabels, speciesLabels } from '@/utils/labels';
 import { AnimalImage } from './AnimalImage';
+import { StatusBadge } from './StatusBadge';
 
 type Props = {
   animal: Animal;
 };
 
 export function AnimalCard({ animal }: Props) {
+  const speciesGender = [speciesLabels[animal.species], genderLabels[animal.gender]];
+  const ageSize = [ageLabels[animal.ageGroup], sizeLabels[animal.size]];
+
   return (
-    <article className="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
-      <div className="aspect-[4/3] overflow-hidden">
+    <article className="group interactive-card flex h-full flex-col overflow-hidden rounded-lg border border-[var(--color-border)] bg-white">
+      <div className="h-56 shrink-0 overflow-hidden">
         <AnimalImage animal={animal} />
       </div>
-      <div className="space-y-4 p-4">
-        <div>
-          <h3 className="text-xl font-bold text-stone-950">{animal.name}</h3>
-          <p className="mt-1 text-sm text-stone-600">{animal.shortDescription}</p>
+      <div className="flex flex-1 flex-col p-5">
+        <div className="min-h-[5.75rem]">
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="min-w-0 text-2xl font-black text-[var(--color-text)]">{animal.name}</h3>
+            <StatusBadge status={animal.adoptionStatus} />
+          </div>
+          <div className="mt-1 space-y-0.5">
+            <p className="flex flex-wrap gap-x-1 text-sm font-semibold text-[var(--color-muted)]">
+              <span className="whitespace-nowrap">{speciesGender[0]}</span>
+              <span aria-hidden="true">·</span>
+              <span className="whitespace-nowrap">{speciesGender[1]}</span>
+            </p>
+            <p className="flex flex-wrap gap-x-1 text-sm font-medium text-[var(--color-muted)]">
+              <span className="whitespace-nowrap">{ageSize[0]}</span>
+              <span aria-hidden="true">·</span>
+              <span className="whitespace-nowrap">{ageSize[1]}</span>
+            </p>
+          </div>
         </div>
-        <dl className="grid grid-cols-2 gap-2 text-sm text-stone-700">
-          <div>
-            <dt className="sr-only">Tür</dt>
-            <dd>{speciesLabels[animal.species]}</dd>
-          </div>
-          <div>
-            <dt className="sr-only">Cinsiyet</dt>
-            <dd>{genderLabels[animal.gender]}</dd>
-          </div>
-          <div>
-            <dt className="sr-only">Yaş</dt>
-            <dd>{ageLabels[animal.ageGroup]}</dd>
-          </div>
-          <div>
-            <dt className="sr-only">Durum</dt>
-            <dd>{statusLabels[animal.adoptionStatus]}</dd>
-          </div>
-        </dl>
-        <Link
-          href={`/can-dostlarimiz/${animal.slug}`}
-          className="inline-flex w-full items-center justify-center rounded-md bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2"
-        >
-          Detayları Gör
+
+        <p className="mt-4 min-h-[4.5rem] line-clamp-3 text-sm leading-6 text-[var(--color-muted)]">
+          {animal.shortDescription || animal.description || 'Bu can dostumuzun detaylarını profil sayfasında inceleyebilirsiniz.'}
+        </p>
+
+        <Link href={`/can-dostlarimiz/${animal.slug}`} className="btn-primary focus-ring mt-auto w-full px-4 py-2.5 text-sm">
+          Detayları Gör <span className="arrow-shift" aria-hidden="true">→</span>
         </Link>
       </div>
     </article>

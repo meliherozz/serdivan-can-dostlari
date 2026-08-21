@@ -1,5 +1,6 @@
 import type {
   AdoptionApplicationInput,
+  AdoptionStatus,
   Animal,
   Breed,
   FAQ,
@@ -18,6 +19,15 @@ type AnimalFilters = {
   ageGroup?: string;
   size?: string;
   featured?: boolean;
+  adoptionStatus?: string;
+};
+
+export type AnimalStats = {
+  total: number;
+  adopted: number;
+  available: number;
+  reserved: number;
+  unavailable: number;
 };
 
 const record = (value: unknown): Record<string, unknown> =>
@@ -37,6 +47,45 @@ const unwrapData = (value: unknown): unknown => {
 const asString = (value: unknown, fallback = ''): string => (typeof value === 'string' ? value : fallback);
 const asBoolean = (value: unknown): boolean => value === true;
 const asNumber = (value: unknown): number => (typeof value === 'number' ? value : Number(value));
+
+const sanitizePublicText = (value: unknown): string | null => {
+  if (typeof value !== 'string') return null;
+
+  const stripped = value
+    .replace(/^Demo kayıt:\s*/i, '')
+    .replace(/Bu kayıt MVP demosu için oluşturulmuştur\.\s*/gi, '')
+    .replace(/Bu kayıt MVP demosu için hazırlanmıştır\.\s*/gi, '')
+    .replace(/Gerçek belediye kaydı değildir\.\s*/gi, '')
+    .trim();
+
+  if (!stripped) return null;
+
+  const blocked = ['mvp', 'strapi', 'placeholder', 'media library', 'demo'];
+  return blocked.some((term) => stripped.toLocaleLowerCase('tr').includes(term)) ? null : stripped;
+};
+
+const sanitizeFAQText = (value: unknown): string => {
+  if (typeof value !== 'string') return '';
+
+  return value
+    .replace(/^Demo kayıt:\s*/i, '')
+    .replace(/Bu kayıt MVP demosu için oluşturulmuştur\.\s*/gi, '')
+    .replace(/Bu kayıt MVP demosu için hazırlanmıştır\.\s*/gi, '')
+    .replace(/Gerçek belediye kaydı değildir\.\s*/gi, '')
+    .replace(/\bMVP\b/gi, 'platform')
+    .replace(/\bStrapi\b/gi, 'belediye içerik sistemi')
+    .replace(/\bdemo\b/gi, 'bilgilendirme')
+    .trim();
+};
+
+const sanitizePublicContact = (value: unknown): string | null => {
+  if (typeof value !== 'string') return null;
+  const stripped = value.trim();
+  if (!stripped) return null;
+
+  const blocked = ['demo', 'placeholder', 'example.invalid'];
+  return blocked.some((term) => stripped.toLocaleLowerCase('tr').includes(term)) ? null : stripped;
+};
 
 const toMedia = (value: unknown): MediaAsset | null => {
   const data = unwrapData(value);
@@ -79,9 +128,9 @@ const toAnimal = (value: unknown): Animal => {
     ageGroup: asString(item.ageGroup, 'adult') as Animal['ageGroup'],
     size: asString(item.size, 'medium') as Animal['size'],
     estimatedBirthDate: typeof item.estimatedBirthDate === 'string' ? item.estimatedBirthDate : null,
-    shortDescription: typeof item.shortDescription === 'string' ? item.shortDescription : null,
-    description: typeof item.description === 'string' ? item.description : null,
-    personality: typeof item.personality === 'string' ? item.personality : null,
+    shortDescription: sanitizePublicText(item.shortDescription),
+    description: sanitizePublicText(item.description),
+    personality: sanitizePublicText(item.personality),
     vaccinated: asBoolean(item.vaccinated),
     neutered: asBoolean(item.neutered),
     microchipped: asBoolean(item.microchipped),
@@ -99,7 +148,7 @@ const toFAQ = (value: unknown): FAQ => {
   return {
     id: asNumber(item.id),
     question: asString(item.question),
-    answer: asString(item.answer),
+    answer: sanitizeFAQText(item.answer),
     order: asNumber(item.order),
     published: item.published !== false,
   };
@@ -109,11 +158,11 @@ const toShelterInfo = (value: unknown): ShelterInfo => {
   const item = unwrap(unwrapData(value));
   return {
     name: asString(item.name, 'Serdivan Belediyesi Sahipsiz Hayvanlar Bakımevi'),
-    description: typeof item.description === 'string' ? item.description : null,
-    address: typeof item.address === 'string' ? item.address : null,
-    phone: typeof item.phone === 'string' ? item.phone : null,
-    email: typeof item.email === 'string' ? item.email : null,
-    workingHours: typeof item.workingHours === 'string' ? item.workingHours : null,
+    description: sanitizePublicText(item.description),
+    address: sanitizePublicText(item.address),
+    phone: sanitizePublicContact(item.phone),
+    email: sanitizePublicContact(item.email),
+    workingHours: sanitizePublicText(item.workingHours),
     latitude: typeof item.latitude === 'number' ? item.latitude : null,
     longitude: typeof item.longitude === 'number' ? item.longitude : null,
     heroImage: toMedia(item.heroImage),
@@ -137,7 +186,7 @@ const getJson = async (path: string, params: Record<string, QueryValue> = {}): P
   });
 
   if (!response.ok) {
-    throw new Error('Strapi içeriği alınamadı.');
+    throw new Error('İçerik alınamadı.');
   }
 
   return response.json();
@@ -145,11 +194,16 @@ const getJson = async (path: string, params: Record<string, QueryValue> = {}): P
 
 export const getAnimals = async (filters: AnimalFilters = {}): Promise<Animal[]> => {
   const params: Record<string, QueryValue> = {
+    status: 'published',
     'populate[breed]': true,
     'populate[featuredImage]': true,
+    'populate[images]': true,
     sort: 'featured:desc,arrivalDate:desc',
-    'filters[adoptionStatus][$ne]': 'unavailable',
   };
+
+  if (!filters.adoptionStatus) {
+    params['filters[adoptionStatus][$ne]'] = 'unavailable';
+  }
 
   for (const [key, value] of Object.entries(filters)) {
     if (value !== undefined && value !== '') {
@@ -165,6 +219,7 @@ export const getAnimals = async (filters: AnimalFilters = {}): Promise<Animal[]>
 export const getAnimalBySlug = async (slug: string): Promise<Animal | null> => {
   const json = record(
     await getJson('animals', {
+      status: 'published',
       'filters[slug][$eq]': slug,
       'populate[breed]': true,
       'populate[featuredImage]': true,
@@ -175,13 +230,32 @@ export const getAnimalBySlug = async (slug: string): Promise<Animal | null> => {
   return data[0] ? toAnimal(data[0]) : null;
 };
 
-export const getFeaturedAnimals = async (): Promise<Animal[]> =>
-  getAnimals({ featured: true });
+export const getFeaturedAnimals = async (): Promise<Animal[]> => getAnimals({ featured: true });
+
+export const getAnimalStats = async (): Promise<AnimalStats> => {
+  const json = record(
+    await getJson('animals', {
+      status: 'published',
+      'pagination[pageSize]': 100,
+      'fields[0]': 'adoptionStatus',
+    }),
+  );
+  const data = Array.isArray(json.data) ? json.data : [];
+  const statuses = data.map((item) => asString(unwrap(item).adoptionStatus, 'unavailable') as AdoptionStatus);
+
+  return {
+    total: statuses.length,
+    adopted: statuses.filter((status) => status === 'adopted').length,
+    available: statuses.filter((status) => status === 'available').length,
+    reserved: statuses.filter((status) => status === 'reserved').length,
+    unavailable: statuses.filter((status) => status === 'unavailable').length,
+  };
+};
 
 export const getFAQs = async (): Promise<FAQ[]> => {
   const json = record(await getJson('faqs', { 'filters[published][$eq]': true, sort: 'order:asc' }));
   const data = Array.isArray(json.data) ? json.data : [];
-  return data.map(toFAQ);
+  return data.map(toFAQ).filter((faq) => faq.question && faq.answer);
 };
 
 export const getShelterInfo = async (): Promise<ShelterInfo> => {

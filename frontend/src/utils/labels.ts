@@ -26,10 +26,10 @@ export const sizeLabels: Record<AnimalSize, string> = {
 };
 
 export const statusLabels: Record<AdoptionStatus, string> = {
-  available: 'Sahiplendirilebilir',
+  available: 'Sahiplenilebilir',
   reserved: 'Rezerve',
   adopted: 'Sahiplendirildi',
-  unavailable: 'Uygun değil',
+  unavailable: 'Şu anda uygun değil',
 };
 
 export const housingLabels: Record<HousingType, string> = {
